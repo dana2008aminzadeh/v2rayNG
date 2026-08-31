@@ -115,6 +115,12 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     )
                 }
             }
+
+            // === اضافه شدن باکس اطلاعات کاربر در اینجا ===
+            UserAccountInfoBox()
+            AppDivider() // یک خط جداکننده برای زیبایی بیشتر
+            // ===========================================
+
             drawerItems.forEachIndexed { index, item ->
                 if (index == primaryDrawerItems.size) AppDivider()
                 NavigationDrawerItem(
