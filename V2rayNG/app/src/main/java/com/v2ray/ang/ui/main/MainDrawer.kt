@@ -33,6 +33,14 @@ import com.v2ray.ang.R
 import com.v2ray.ang.ui.compose.AppDivider
 import com.v2ray.ang.ui.compose.LocalDarkTheme
 import com.v2ray.ang.ui.compose.verticalScrollbar
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.v2ray.ang.handler.MmkvManager
 
 enum class MainDestination(@DrawableRes val iconRes: Int, @StringRes val labelRes: Int) {
     Subscriptions(R.drawable.ic_subscriptions_24dp, R.string.title_sub_setting),
@@ -117,6 +125,33 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun UserAccountInfoBox() {
+    // خواندن اطلاعاتی که در LoginActivity ذخیره کردیم
+    val remainingData = MmkvManager.decodeString("user_remaining_data") ?: "نامشخص"
+    val daysLeft = MmkvManager.decodeString("user_days_left") ?: "نامشخص"
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A201C)) // یک رنگ تیره و شیک برای باکس
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "وضعیت حساب شما",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(text = "حجم باقی‌مانده: $remainingData گیگابایت", color = Color.LightGray)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(text = "اعتبار باقی‌مانده: $daysLeft روز", color = Color.LightGray)
         }
     }
 }
