@@ -102,45 +102,47 @@ class MainActivity : HelperBaseComponentActivity() {
 
         // اگر حجم یا زمان صفر یا کمتر بود، صفحه تمدید نمایش داده شود
         if (data <= 0f || days <= 0) {
-            setContent {
-                androidx.compose.foundation.layout.Column(
-                    modifier = androidx.compose.ui.Modifier
-                        .androidx.compose.foundation.layout.fillMaxSize()
-                        .androidx.compose.foundation.background(androidx.compose.ui.graphics.Color(0xFF1E1E1E)),
-                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-                ) {
-                    androidx.compose.material3.Text(
-                        text = "Account Expired",
-                        color = androidx.compose.ui.graphics.Color.White,
-                        fontSize = androidx.compose.ui.unit.sp.TextUnit(22f, androidx.compose.ui.unit.TextUnitType.Sp),
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                    )
-                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
-                    androidx.compose.material3.Text(
-                        text = "Please renew your subscription to continue",
-                        color = androidx.compose.ui.graphics.Color(0xFFB3B3B3),
-                        fontSize = androidx.compose.ui.unit.sp.TextUnit(15f, androidx.compose.ui.unit.TextUnitType.Sp)
-                    )
-                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
-                    
-                    androidx.compose.material3.Button(
-                        onClick = {
-                            // انتقال مستقیم به ربات تلگرام شما
-                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://t.me/connect_ix_vpn_bot"))
-                            startActivity(intent)
-                        },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFA3A3A3)),
-                        modifier = androidx.compose.ui.Modifier
-                            .androidx.compose.foundation.layout.fillMaxWidth()
-                            .androidx.compose.foundation.layout.padding(horizontal = 40.dp)
-                            .androidx.compose.foundation.layout.height(55.dp)
-                    ) {
-                        androidx.compose.material3.Text("Renew Account", color = androidx.compose.ui.graphics.Color(0xFF191919), fontSize = androidx.compose.ui.unit.sp.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp))
-                    }
+            val layout = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                gravity = android.view.Gravity.CENTER
+                setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"))
+            }
+            val title = android.widget.TextView(this).apply {
+                text = "Account Expired"
+                setTextColor(android.graphics.Color.WHITE)
+                textSize = 24f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
+            val subTitle = android.widget.TextView(this).apply {
+                text = "Please renew your subscription to continue"
+                setTextColor(android.graphics.Color.parseColor("#B3B3B3"))
+                textSize = 15f
+                setPadding(0, 20, 0, 80)
+            }
+            val btn = android.widget.Button(this).apply {
+                text = "Renew Account"
+                isAllCaps = false
+                setBackgroundColor(android.graphics.Color.parseColor("#A3A3A3"))
+                setTextColor(android.graphics.Color.parseColor("#191919"))
+                textSize = 16f
+                setOnClickListener {
+                    startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://t.me/connect_ix_vpn_bot")))
                 }
             }
-            return // توقف اجرای بقیه کدهای صفحه اصلی
+            layout.addView(title)
+            layout.addView(subTitle)
+            
+            // تنظیم حاشیه برای دکمه
+            val btnContainer = android.widget.LinearLayout(this).apply {
+                setPadding(100, 0, 100, 0)
+                addView(btn, android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 150
+                ))
+            }
+            layout.addView(btnContainer)
+            
+            setContentView(layout)
+            return
         }
         // --- پایان کدهای بررسی وضعیت اشتراک ---
         mainViewModel.onAction(MainAction.Initialize)
