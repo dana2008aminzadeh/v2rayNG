@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -8,8 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.v2ray.ang.R
 import com.v2ray.ang.handler.AngConfigManager
-import com.v2ray.ang.handler.MmkvManager // آدرس صحیح جایگزین شد
-import com.v2ray.ang.ui.main.MainActivity // این خط اضافه شد
+import com.v2ray.ang.ui.main.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import java.net.URLEncoder
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login) // باید ابتدا فایل xml بالا را ساخته باشید
+        setContentView(R.layout.activity_login) 
 
         val etUsername = findViewById<EditText>(R.id.etUsername)
         val etPassword = findViewById<EditText>(R.id.etPassword)
@@ -42,7 +42,7 @@ class LoginActivity : AppCompatActivity() {
     private fun performLogin(username: String, pass: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // آدرس API خود را اینجا قرار دهید
+                // آدرس API شما اعمال شد
                 val url = URL("https://dana.s16.viptelbot.top/v2/api.php?action=login")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
@@ -60,9 +60,13 @@ class LoginActivity : AppCompatActivity() {
                     if (json.getBoolean("success")) {
                         val accountInfo = json.getJSONObject("account_info")
                         
-                        // ذخیره اطلاعات اکانت در دیتابیس محلی برنامه (MMKV)
-                        MmkvManager.encodeString("user_remaining_data", accountInfo.getString("remaining_data_gb"))
-                        MmkvManager.encodeString("user_days_left", accountInfo.getString("days_left"))
+                        // ذخیره با استفاده از SharedPreferences
+                        val sharedPref = getSharedPreferences("v2rayng_user_data", Context.MODE_PRIVATE)
+                        sharedPref.edit().apply {
+                            putString("user_remaining_data", accountInfo.getString("remaining_data_gb"))
+                            putString("user_days_left", accountInfo.getString("days_left"))
+                            apply()
+                        }
 
                         // دریافت لیست سرورها و وارد کردن به برنامه
                         val serversArray = json.getJSONArray("servers")
