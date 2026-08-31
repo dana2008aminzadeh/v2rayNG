@@ -113,7 +113,38 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
             }
-        }
+
+            // === اضافه شدن دکمه خروج دقیقا در این قسمت ===
+            val context = LocalContext.current // دریافت کانتکست
+            
+            Spacer(modifier = Modifier.weight(1f)) // این کد دکمه را به پایین صفحه هل می‌دهد
+            
+            Button(
+                onClick = {
+                    // پاک کردن اطلاعات حساب کاربری
+                    val sharedPref = context.getSharedPreferences("v2rayng_user_data", android.content.Context.MODE_PRIVATE)
+                    sharedPref.edit().clear().apply()
+                    
+                    // پاک کردن تمام سرورها برای امنیت (اختیاری)
+                    com.v2ray.ang.handler.AngConfigManager.clearConfig()
+                    
+                    // بازگشت به صفحه لاگین
+                    val intent = android.content.Intent(context, com.v2ray.ang.ui.LoginActivity::class.java)
+                    intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(intent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2A2A2A)),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            ) {
+                Text("Logout", color = Color(0xFFEB5757), fontWeight = FontWeight.Bold)
+            }
+            // ============================================
+
+        } // این براکت بسته شدن Column است
     }
 }
 
