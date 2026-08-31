@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,37 +27,79 @@ import com.v2ray.ang.ui.compose.LocalDarkTheme
 import com.v2ray.ang.ui.compose.QRCodeDialog
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.util.Locale
 
-// کارت اختصاصی و متمایز برای انتخاب سریع‌ترین سرور
+// کارت جدید و پریمیوم برای انتخاب سریع‌ترین سرور
 @Composable
-fun AutoConnectFastestCard(mainViewModel: MainViewModel) {
+fun AutoConnectFastestCard(mainViewModel: MainViewModel, onAction: (MainAction) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable {
-                // دستور تست پینگ واقعی تمام سرورها
-                mainViewModel.testAllRealPing()
+                scope.launch {
+                    // مرحله اول: استارت پینگ
+                    android.widget.Toast.makeText(context, if(isFa) "در حال تست پینگ..." else "Testing Ping...", android.widget.Toast.LENGTH_SHORT).show()
+                    onAction(MainAction.TestRealAllServers)
+                    
+                    // مرحله دوم: 4 ثانیه صبر برای دریافت پینگ از همه سرورها
+                    kotlinx.coroutines.delay(4000)
+                    
+                    // مرحله سوم: مرتب‌سازی سرورها
+                    onAction(MainAction.SortByTestResults)
+                    android.widget.Toast.makeText(context, if(isFa) "سرورها بر اساس سرعت مرتب شدند!" else "Servers sorted by speed!", android.widget.Toast.LENGTH_SHORT).show()
+                }
             },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFF474747)) // کادر ملایم برای زیبایی بیشتر
     ) {
         Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_routing_24dp), 
+                painter = painterResource(id = R.drawable.ic_routing_24dp),
                 contentDescription = null,
                 tint = Color(0xFFA3A3A3),
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text("Fastest Server", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("Auto-select lowest latency", color = Color(0xFF808080), fontSize = 13.sp)
+                Text(if(isFa) "سریع‌ترین سرور" else "Fastest Server", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(if(isFa) "تست پینگ و انتخاب هوشمند" else "Auto-select lowest latency", color = Color(0xFF808080), fontSize = 13.sp)
+            }
+        }
+    }
+}
+
+// باکس جذاب نمایش آی‌پی و پینگ هنگام اتصال
+@Composable
+fun ConnectionStatusCard(isRunning: Boolean, displayText: String) {
+    val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
+    
+    if (isRunning) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF00382E)), // رنگ سبز/کله‌غازی دارک
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, Color(0xFF83D6B5))
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(painterResource(R.drawable.ic_check_update_24dp), contentDescription = null, tint = Color(0xFFA0F2D0))
+                    Spacer(Modifier.width(8.dp))
+                    Text(if(isFa) "شما متصل هستید" else "You are Connected", color = Color(0xFFA0F2D0), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+                Spacer(Modifier.height(12.dp))
+                // نمایش اطلاعات آی‌پی و وضعیت اتصال
+                Text(displayText, color = Color.White, fontSize = 15.sp)
             }
         }
     }
@@ -221,10 +265,13 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(Color(0xFF1E1E1E)) // تم تاریک پس زمینه
+                    .background(Color(0xFF1E1E1E)) 
             ) {
-                // === نمایش کارت پینگ در بالای لیست ===
-                AutoConnectFastestCard(mainViewModel = mainViewModel)
+                // نمایش کارت هوشمند انتخاب سرور
+                AutoConnectFastestCard(mainViewModel = mainViewModel, onAction = onAction)
+                
+                // نمایش باکس زیبای آی‌پی و وضعیت فقط در زمان اتصال
+                ConnectionStatusCard(isRunning = isRunning, displayText = displayText)
 
                 if (groups.isNotEmpty()) {
                     if (groups.size > 1) {
