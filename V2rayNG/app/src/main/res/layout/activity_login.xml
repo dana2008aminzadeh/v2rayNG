@@ -1,83 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#251E1B"
-    android:layoutDirection="rtl"> <!-- راست‌چین کردن صفحه -->
+    android:background="#1E1E1E"> <!-- رنگ پس‌زمینه کاملاً تیره شبیه عکس -->
 
+    <!-- بخش مرکزی (فرم ورود) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:layout_margin="24dp"
-        android:background="@drawable/bg_input"
-        android:backgroundTint="#312725"
-        android:elevation="8dp"
         android:orientation="vertical"
         android:padding="32dp">
-
-        <!-- آیکون یا لوگوی بالای باکس -->
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp"
-            android:src="@mipmap/ic_launcher_foreground"
-            app:tint="#FFFFFF" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="32dp"
-            android:text="ورود به حساب کاربری"
+            android:layout_gravity="center_horizontal"
+            android:text="LOGIN"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="26sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="48dp"
+            android:text="Please Enter Username and Password"
+            android:textColor="#B3B3B3"
+            android:textSize="15sp" />
 
         <EditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
+            android:layout_height="60dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/bg_input"
-            android:drawableStart="@android:drawable/ic_menu_myplaces"
-            android:drawablePadding="12dp"
-            android:drawableTint="#5F605C"
-            android:hint="نام کاربری"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:hint="Username"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
             android:textColor="#FFFFFF"
-            android:textColorHint="#5F605C"
-            android:textSize="16sp" />
+            android:textColorHint="#808080"
+            android:textSize="16sp"
+            android:singleLine="true" />
 
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
+            android:layout_height="60dp"
             android:layout_marginBottom="32dp"
             android:background="@drawable/bg_input"
-            android:drawableStart="@android:drawable/ic_lock_idle_lock"
-            android:drawablePadding="12dp"
-            android:drawableTint="#5F605C"
-            android:hint="رمز عبور"
+            android:hint="Password"
             android:inputType="textPassword"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
             android:textColor="#FFFFFF"
-            android:textColorHint="#5F605C"
-            android:textSize="16sp" />
+            android:textColorHint="#808080"
+            android:textSize="16sp"
+            android:singleLine="true" />
 
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:background="@drawable/bg_button"
-            android:text="ورود و دریافت کانفیگ"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:text="Login"
+            android:textAllCaps="false"
+            android:textColor="#191919"
+            android:textSize="18sp" />
 
     </LinearLayout>
+
+    <!-- بخش پایین صفحه (QR Login) -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- از آیکون پیش‌فرض اندروید برای شبیه‌سازی اسکنر استفاده شده است -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:src="@android:drawable/ic_menu_crop"
+            android:app:tint="#FFFFFF"
+            xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="QR Login"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+
 </RelativeLayout>
