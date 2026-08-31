@@ -115,6 +115,7 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
             }
 
             // === اضافه شدن دکمه خروج دقیقا در این قسمت ===
+            // === اضافه شدن دکمه خروج دقیقا در این قسمت ===
             val context = LocalContext.current // دریافت کانتکست
             
             Spacer(modifier = Modifier.weight(1f)) // این کد دکمه را به پایین صفحه هل می‌دهد
@@ -124,9 +125,6 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
                     // پاک کردن اطلاعات حساب کاربری
                     val sharedPref = context.getSharedPreferences("v2rayng_user_data", android.content.Context.MODE_PRIVATE)
                     sharedPref.edit().clear().apply()
-                    
-                    // پاک کردن تمام سرورها برای امنیت (اختیاری)
-                    com.v2ray.ang.handler.AngConfigManager.clearConfig()
                     
                     // بازگشت به صفحه لاگین
                     val intent = android.content.Intent(context, com.v2ray.ang.ui.LoginActivity::class.java)
