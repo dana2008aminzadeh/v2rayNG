@@ -28,35 +28,42 @@ import com.v2ray.ang.ui.compose.QRCodeDialog
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlinx.coroutines.delay
 
-// کارت جدید و پریمیوم برای انتخاب سریع‌ترین سرور
+// === ۱. کارت هوشمند و پریمیوم برای تست و مرتب‌سازی سرورها ===
 @Composable
 fun AutoConnectFastestCard(mainViewModel: MainViewModel, onAction: (MainAction) -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
+    
+    // متغیری برای جلوگیری از کلیکِ اسپم و تغییر ظاهر کارت در حین تست
+    var isTesting by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable {
+            .clickable(enabled = !isTesting) {
                 scope.launch {
-                    // مرحله اول: استارت پینگ
-                    android.widget.Toast.makeText(context, if(isFa) "در حال تست پینگ..." else "Testing Ping...", android.widget.Toast.LENGTH_SHORT).show()
+                    isTesting = true
+                    android.widget.Toast.makeText(context, if(isFa) "در حال تست دقیق تمام سرورها (۱۰ ثانیه)..." else "Testing Ping (Wait 10s)...", android.widget.Toast.LENGTH_SHORT).show()
+                    
+                    // فرمان تست پینگ
                     onAction(MainAction.TestRealAllServers)
                     
-                    // مرحله دوم: 4 ثانیه صبر برای دریافت پینگ از همه سرورها
-                    kotlinx.coroutines.delay(4000)
+                    // زمان انتظار طولانی‌تر شد تا تست‌ها کامل شوند
+                    delay(10000)
                     
-                    // مرحله سوم: مرتب‌سازی سرورها
+                    // فرمان مرتب‌سازی
                     onAction(MainAction.SortByTestResults)
-                    android.widget.Toast.makeText(context, if(isFa) "سرورها بر اساس سرعت مرتب شدند!" else "Servers sorted by speed!", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, if(isFa) "لیست مرتب شد! روی اولین سرور کلیک کنید." else "Sorted! Please tap the first server.", android.widget.Toast.LENGTH_LONG).show()
+                    isTesting = false
                 }
             },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFF474747)) // کادر ملایم برای زیبایی بیشتر
+        border = BorderStroke(1.dp, if (isTesting) Color(0xFFA3A3A3) else Color(0xFF474747)) // کادر هنگام تست تغییر رنگ می‌دهد
     ) {
         Row(
             modifier = Modifier.padding(20.dp).fillMaxWidth(),
@@ -65,19 +72,28 @@ fun AutoConnectFastestCard(mainViewModel: MainViewModel, onAction: (MainAction) 
             Icon(
                 painter = painterResource(id = R.drawable.ic_routing_24dp),
                 contentDescription = null,
-                tint = Color(0xFFA3A3A3),
+                tint = if (isTesting) Color(0xFF83D6B5) else Color(0xFFA3A3A3),
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(if(isFa) "سریع‌ترین سرور" else "Fastest Server", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(if(isFa) "تست پینگ و انتخاب هوشمند" else "Auto-select lowest latency", color = Color(0xFF808080), fontSize = 13.sp)
+                Text(
+                    text = if(isTesting) (if(isFa) "در حال پردازش..." else "Processing...") else (if(isFa) "پیدا کردن سریع‌ترین سرور" else "Find Fastest Server"), 
+                    color = Color.White, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = if(isFa) "تست پینگ و مرتب‌سازی هوشمند" else "Test ping & smart sort", 
+                    color = Color(0xFF808080), 
+                    fontSize = 13.sp
+                )
             }
         }
     }
 }
 
-// باکس جذاب نمایش آی‌پی و پینگ هنگام اتصال
+// === ۲. باکس لوکس و مدرن برای نمایش وضعیت و آی‌پی هنگام اتصال ===
 @Composable
 fun ConnectionStatusCard(isRunning: Boolean, displayText: String) {
     val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
@@ -87,24 +103,39 @@ fun ConnectionStatusCard(isRunning: Boolean, displayText: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF00382E)), // رنگ سبز/کله‌غازی دارک
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF192E26)), // رنگ سبز تیره و خاص
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, Color(0xFF83D6B5))
+            border = BorderStroke(1.dp, Color(0xFF2E634F))
         ) {
-            Column(modifier = Modifier.padding(20.dp)) {
+            Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.ic_check_update_24dp), contentDescription = null, tint = Color(0xFFA0F2D0))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_check_update_24dp), 
+                        contentDescription = null, 
+                        tint = Color(0xFF66E2B3) // سبز نئونی
+                    )
                     Spacer(Modifier.width(8.dp))
-                    Text(if(isFa) "شما متصل هستید" else "You are Connected", color = Color(0xFFA0F2D0), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = if(isFa) "اتصال ایمن برقرار است" else "Secure Connection Active", 
+                        color = Color(0xFF66E2B3), 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 16.sp
+                    )
                 }
                 Spacer(Modifier.height(12.dp))
-                // نمایش اطلاعات آی‌پی و وضعیت اتصال
-                Text(displayText, color = Color.White, fontSize = 15.sp)
+                // نمایش اطلاعات با استایل تمیزتر
+                Text(
+                    text = displayText, 
+                    color = Color(0xFFE0E0E0), 
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp
+                )
             }
         }
     }
 }
 
+// === ۳. بدنه اصلی برنامه ===
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
@@ -270,7 +301,7 @@ fun MainScreen(
                 // نمایش کارت هوشمند انتخاب سرور
                 AutoConnectFastestCard(mainViewModel = mainViewModel, onAction = onAction)
                 
-                // نمایش باکس زیبای آی‌پی و وضعیت فقط در زمان اتصال
+                // نمایش باکس زیبای آی‌پی و وضعیت اتصال
                 ConnectionStatusCard(isRunning = isRunning, displayText = displayText)
 
                 if (groups.isNotEmpty()) {
