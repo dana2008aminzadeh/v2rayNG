@@ -92,6 +92,57 @@ class MainActivity : HelperBaseComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // --- کدهای بررسی وضعیت اشتراک کاربر ---
+        val sharedPref = getSharedPreferences("v2rayng_user_data", android.content.Context.MODE_PRIVATE)
+        val dataStr = sharedPref.getString("user_remaining_data", "0") ?: "0"
+        val daysStr = sharedPref.getString("user_days_left", "0") ?: "0"
+        
+        val data = dataStr.toFloatOrNull() ?: 0f
+        val days = daysStr.toIntOrNull() ?: 0
+
+        // اگر حجم یا زمان صفر یا کمتر بود، صفحه تمدید نمایش داده شود
+        if (data <= 0f || days <= 0) {
+            setContent {
+                androidx.compose.foundation.layout.Column(
+                    modifier = androidx.compose.ui.Modifier
+                        .androidx.compose.foundation.layout.fillMaxSize()
+                        .androidx.compose.foundation.background(androidx.compose.ui.graphics.Color(0xFF1E1E1E)),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "Account Expired",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        fontSize = androidx.compose.ui.unit.sp.TextUnit(22f, androidx.compose.ui.unit.TextUnitType.Sp),
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(16.dp))
+                    androidx.compose.material3.Text(
+                        text = "Please renew your subscription to continue",
+                        color = androidx.compose.ui.graphics.Color(0xFFB3B3B3),
+                        fontSize = androidx.compose.ui.unit.sp.TextUnit(15f, androidx.compose.ui.unit.TextUnitType.Sp)
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = androidx.compose.ui.Modifier.height(40.dp))
+                    
+                    androidx.compose.material3.Button(
+                        onClick = {
+                            // انتقال مستقیم به ربات تلگرام شما
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://t.me/connect_ix_vpn_bot"))
+                            startActivity(intent)
+                        },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFA3A3A3)),
+                        modifier = androidx.compose.ui.Modifier
+                            .androidx.compose.foundation.layout.fillMaxWidth()
+                            .androidx.compose.foundation.layout.padding(horizontal = 40.dp)
+                            .androidx.compose.foundation.layout.height(55.dp)
+                    ) {
+                        androidx.compose.material3.Text("Renew Account", color = androidx.compose.ui.graphics.Color(0xFF191919), fontSize = androidx.compose.ui.unit.sp.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp))
+                    }
+                }
+            }
+            return // توقف اجرای بقیه کدهای صفحه اصلی
+        }
+        // --- پایان کدهای بررسی وضعیت اشتراک ---
         mainViewModel.onAction(MainAction.Initialize)
 
         checkAndRequestPermission(PermissionType.POST_NOTIFICATIONS) {}
