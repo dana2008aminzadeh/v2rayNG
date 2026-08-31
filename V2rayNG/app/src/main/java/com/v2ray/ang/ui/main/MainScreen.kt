@@ -33,13 +33,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-// تابع کمکی برای پشتیبانی از چند زبان
+// === تابع پشتیبانی از چند زبانگی ===
 fun getStr(fa: String, en: String): String {
     val lang = Locale.getDefault().language
     return if (lang == "fa" || lang == "ar") fa else en
 }
 
-// === هدر اختصاصی شبیه به Windscribe ===
+// === هدر شیک و پرمیوم شبیه Windscribe ===
 @Composable
 fun WindscribeHeader(
     isRunning: Boolean,
@@ -52,15 +52,14 @@ fun WindscribeHeader(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
-            .background(Color(0xFF12141A)) // پس‌زمینه اصلی تاریک
+            .background(Color(0xFF12141A))
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // بخش بالایی (قرمز تیره)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color(0xFF4A1010)) // قرمز تیره
+                    .background(Color(0xFF4A1010)) 
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -100,12 +99,11 @@ fun WindscribeHeader(
                 }
             }
             
-            // بخش پایینی (زیتونی/خاکستری برای اطلاعات شبکه)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(45.dp)
-                    .background(Color(0xFF5B4B1A)) // زیتونی
+                    .background(Color(0xFF5B4B1A))
             ) {
                 Row(
                     modifier = Modifier
@@ -124,7 +122,7 @@ fun WindscribeHeader(
             }
         }
 
-        // دکمه بزرگ و شناور اتصال (استفاده از آیکون‌های بومی اندروید)
+        // دکمه بزرگ اتصال
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -146,7 +144,7 @@ fun WindscribeHeader(
     }
 }
 
-// === بنر اطلاعات حساب کاربری در پایین صفحه ===
+// === بنر حساب کاربری پایین لیست ===
 @Composable
 fun WindscribeAccountBanner() {
     val context = LocalContext.current
@@ -180,7 +178,6 @@ fun WindscribeAccountBanner() {
                 Text(getStr("دسترسی پرمیوم فعال", "Premium Access Active"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 Text(getStr("از اینترنت بدون محدودیت لذت ببرید", "Enjoy unlimited everything"), color = Color(0xFF66E2B3), fontSize = 13.sp)
             }
-            // استفاده از آیکون پیش‌فرض اندروید برای فلش
             Icon(
                 painter = painterResource(android.R.drawable.ic_media_next), 
                 contentDescription = null, 
@@ -267,20 +264,22 @@ fun MainScreen(
         Scaffold(
             contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
             topBar = {},
-            bottomBar = {}, 
+            bottomBar = {}, // نوار پایینی پیش فرض حذف شد تا رابط کاربری دقیقا شبیه عکس شود
             floatingActionButton = {},
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF12141A)) // رنگ پس‌زمینه دارک شبیه عکس
+                    .background(Color(0xFF12141A)) // رنگ پس‌زمینه دارک
             ) {
-                // هدر اختصاصی ما در بالاترین قسمت
                 WindscribeHeader(
                     isRunning = isRunning,
                     displayText = displayText,
                     onMenuClick = { scope.launch { drawerState.open() } },
-                    onConnectClick = { onAction(MainAction.FabClick) }, // فرمان بومی اتصال 
+                    onConnectClick = { 
+                        // اکشن صحیح بر اساس سورس اختصاصی شما جایگزین شد
+                        onAction(MainAction.ToggleService) 
+                    },
                     onSearchClick = { showSearch = !showSearch }
                 )
 
