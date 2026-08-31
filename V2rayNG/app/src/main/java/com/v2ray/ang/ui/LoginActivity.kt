@@ -42,7 +42,7 @@ class LoginActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // آدرس API خود را اینجا قرار دهید
-                val url = URL("https://your-domain.com/api.php?action=login")
+                val url = URL("https://dana.s16.viptelbot.top/v2/api.php?action=login")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.doOutput = true
