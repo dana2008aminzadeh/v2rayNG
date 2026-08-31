@@ -11,6 +11,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +33,7 @@ import com.v2ray.ang.R
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.ui.compose.LocalDarkTheme
 import com.v2ray.ang.ui.compose.QRCodeDialog
+import com.v2ray.ang.util.Utils
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -124,7 +129,7 @@ fun WindscribeHeader(
             }
         }
 
-        // دکمه بزرگ و شناور اتصال (Floating Connect Button)
+        // دکمه بزرگ و شناور اتصال
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -137,7 +142,7 @@ fun WindscribeHeader(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(if (isRunning) R.drawable.ic_stop_24dp else R.drawable.ic_fab_start),
+                imageVector = if (isRunning) Icons.Filled.Close else Icons.Filled.PlayArrow,
                 contentDescription = "Connect",
                 tint = if (isRunning) Color.White else Color(0xFF191919),
                 modifier = Modifier.size(32.dp)
@@ -165,7 +170,6 @@ fun WindscribeAccountBanner() {
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // حلقه سبز رنگ برای حجم
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -181,7 +185,11 @@ fun WindscribeAccountBanner() {
                 Text(getStr("دسترسی پرمیوم فعال", "Premium Access Active"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 Text(getStr("از اینترنت بدون محدودیت لذت ببرید", "Enjoy unlimited everything"), color = Color(0xFF66E2B3), fontSize = 13.sp)
             }
-            Icon(painterResource(R.drawable.ic_arrow_forward_24dp), contentDescription = null, tint = Color(0xFFA3A3A3))
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowRight, 
+                contentDescription = null, 
+                tint = Color(0xFFA3A3A3)
+            )
         }
     }
 }
@@ -201,13 +209,13 @@ fun MainScreen(
     val confirmRemove = uiState.confirmRemove
     val shareQRCodeBitmap = uiState.shareQRCodeBitmap
     val doubleColumnDisplay = uiState.doubleColumnDisplay
-
+    
+    val context = LocalContext.current // دریافت کانتکست برای اتصال VPN
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     
-    // متغیرهای دیالوگ‌ها
     var showDelAllConfirm by remember { mutableStateOf(false) }
     var showDelDuplicateConfirm by remember { mutableStateOf(false) }
     var showDelInvalidConfirm by remember { mutableStateOf(false) }
@@ -234,7 +242,6 @@ fun MainScreen(
         }
     }
 
-    // دیالوگ‌ها (مخفی)
     MainDialogs(
         showDelAllConfirm = showDelAllConfirm,
         onDismissDelAll = { showDelAllConfirm = false },
@@ -264,7 +271,6 @@ fun MainScreen(
     ) {
         Scaffold(
             contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
-            // نوار بالایی و پایینی پیش‌فرض V2rayNG رو حذف کردم تا هدر خودمون رو بذاریم
             topBar = {},
             bottomBar = {}, 
             floatingActionButton = {},
@@ -274,16 +280,18 @@ fun MainScreen(
                     .fillMaxSize()
                     .background(Color(0xFF12141A)) // رنگ پس‌زمینه دارک شبیه عکس
             ) {
-                // هدر اختصاصی ما در بالاترین قسمت
+                // هدر اختصاصی 
                 WindscribeHeader(
                     isRunning = isRunning,
                     displayText = displayText,
                     onMenuClick = { scope.launch { drawerState.open() } },
-                    onConnectClick = { onAction(MainAction.FabClick) }, // این دکمه همون کار دکمه اتصال رو می‌کنه
+                    onConnectClick = { 
+                        // اتصال مستقیم با توابع هسته‌ی V2rayNG
+                        if (isRunning) Utils.stopV2Ray(context) else Utils.startV2Ray(context) 
+                    },
                     onSearchClick = { showSearch = !showSearch }
                 )
 
-                // نوار جستجو (فقط در صورت کلیک روی آیکون جستجو باز میشه)
                 if (showSearch) {
                     TextField(
                         value = searchQuery,
@@ -294,7 +302,6 @@ fun MainScreen(
                     )
                 }
 
-                // لیست سرورها
                 if (groups.isNotEmpty()) {
                     Box(modifier = Modifier.weight(1f)) {
                         HorizontalPager(
@@ -327,7 +334,6 @@ fun MainScreen(
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
-                // بنر اطلاعات حساب در پایین‌ترین نقطه
                 WindscribeAccountBanner()
                 Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding()))
             }
