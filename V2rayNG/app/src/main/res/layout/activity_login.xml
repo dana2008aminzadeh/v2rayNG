@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1E1E1E"> <!-- رنگ پس‌زمینه کاملاً تیره شبیه عکس -->
@@ -82,14 +83,12 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- از آیکون پیش‌فرض اندروید برای شبیه‌سازی اسکنر استفاده شده است -->
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginEnd="8dp"
             android:src="@android:drawable/ic_menu_crop"
-            android:app:tint="#FFFFFF"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+            app:tint="#FFFFFF" />
 
         <TextView
             android:layout_width="wrap_content"
