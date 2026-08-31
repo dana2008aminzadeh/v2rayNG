@@ -1,46 +1,28 @@
 package com.v2ray.ang.ui.main
 
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DrawerState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.v2ray.ang.R
 import com.v2ray.ang.ui.compose.AppDivider
 import com.v2ray.ang.ui.compose.LocalDarkTheme
 import com.v2ray.ang.ui.compose.verticalScrollbar
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import com.v2ray.ang.handler.MmkvManager
 
 enum class MainDestination(@DrawableRes val iconRes: Int, @StringRes val labelRes: Int) {
     Subscriptions(R.drawable.ic_subscriptions_24dp, R.string.title_sub_setting),
@@ -118,7 +100,7 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
 
             // === اضافه شدن باکس اطلاعات کاربر در اینجا ===
             UserAccountInfoBox()
-            AppDivider() // یک خط جداکننده برای زیبایی بیشتر
+            AppDivider() 
             // ===========================================
 
             drawerItems.forEachIndexed { index, item ->
@@ -137,15 +119,18 @@ fun MainDrawerContent(drawerState: DrawerState, onNavigate: (MainDestination) ->
 
 @Composable
 fun UserAccountInfoBox() {
-    // خواندن اطلاعاتی که در LoginActivity ذخیره کردیم
-    val remainingData = MmkvManager.decodeString("user_remaining_data") ?: "نامشخص"
-    val daysLeft = MmkvManager.decodeString("user_days_left") ?: "نامشخص"
+    // استفاده از SharedPreferences استاندارد به جای MmkvManager
+    val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences("v2rayng_user_data", Context.MODE_PRIVATE)
+    
+    val remainingData = sharedPref.getString("user_remaining_data", "نامشخص")
+    val daysLeft = sharedPref.getString("user_days_left", "نامشخص")
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A201C)) // یک رنگ تیره و شیک برای باکس
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A201C))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
