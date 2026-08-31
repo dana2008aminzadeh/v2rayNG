@@ -1,5 +1,6 @@
 package com.v2ray.ang.ui.main
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,11 +9,14 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -28,114 +32,161 @@ import com.v2ray.ang.ui.compose.QRCodeDialog
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.util.Locale
-import kotlinx.coroutines.delay
 
-// === ۱. کارت هوشمند و پریمیوم برای تست و مرتب‌سازی سرورها ===
+// تابع کمکی برای پشتیبانی از چند زبان
+fun getStr(fa: String, en: String): String {
+    val lang = Locale.getDefault().language
+    return if (lang == "fa" || lang == "ar") fa else en
+}
+
+// === هدر اختصاصی شبیه به Windscribe ===
 @Composable
-fun AutoConnectFastestCard(mainViewModel: MainViewModel, onAction: (MainAction) -> Unit) {
-    val scope = rememberCoroutineScope()
+fun WindscribeHeader(
+    isRunning: Boolean,
+    displayText: String,
+    onMenuClick: () -> Unit,
+    onConnectClick: () -> Unit,
+    onSearchClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+            .background(Color(0xFF12141A)) // پس‌زمینه اصلی تاریک
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // بخش بالایی (قرمز تیره)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color(0xFF4A1010)) // قرمز تیره
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = onMenuClick) {
+                            Icon(painterResource(R.drawable.ic_menu_24dp), contentDescription = "Menu", tint = Color.White)
+                        }
+                        Text(
+                            text = getStr("شبکه اختصاصی", "V2RAY PRO"),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            letterSpacing = 2.sp
+                        )
+                        IconButton(onClick = onSearchClick) {
+                            Icon(painterResource(R.drawable.ic_search_24dp), contentDescription = "Search", tint = Color.White)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = if (isRunning) getStr("متصل", "CONNECTED") else getStr("خاموش", "OFF"),
+                        color = if (isRunning) Color(0xFF83D6B5) else Color(0xFFA3A3A3),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = if (isRunning) getStr("ارتباط ایمن", "Secure Tunnel") else getStr("آماده اتصال", "Ready to Connect"),
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 28.sp
+                    )
+                }
+            }
+            
+            // بخش پایینی (زیتونی/خاکستری برای اطلاعات شبکه)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(45.dp)
+                    .background(Color(0xFF5B4B1A)) // زیتونی
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(painterResource(R.drawable.ic_routing_24dp), contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = getStr("وضعیت شبکه", "Network Status"), color = Color.White, fontSize = 14.sp)
+                    }
+                    Text(text = displayText, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        // دکمه بزرگ و شناور اتصال (Floating Connect Button)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 80.dp, end = 24.dp)
+                .size(72.dp)
+                .shadow(12.dp, CircleShape)
+                .clip(CircleShape)
+                .background(if (isRunning) Color(0xFF83D6B5) else Color.White)
+                .clickable { onConnectClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(if (isRunning) R.drawable.ic_stop_24dp else R.drawable.ic_fab_start),
+                contentDescription = "Connect",
+                tint = if (isRunning) Color.White else Color(0xFF191919),
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+}
+
+// === بنر اطلاعات حساب کاربری در پایین صفحه ===
+@Composable
+fun WindscribeAccountBanner() {
     val context = LocalContext.current
-    val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
-    
-    // متغیری برای جلوگیری از کلیکِ اسپم و تغییر ظاهر کارت در حین تست
-    var isTesting by remember { mutableStateOf(false) }
+    val sharedPref = context.getSharedPreferences("v2rayng_user_data", Context.MODE_PRIVATE)
+    val remaining = sharedPref.getString("user_remaining_data", "0") ?: "0"
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(enabled = !isTesting) {
-                scope.launch {
-                    isTesting = true
-                    android.widget.Toast.makeText(context, if(isFa) "در حال تست دقیق تمام سرورها (۱۰ ثانیه)..." else "Testing Ping (Wait 10s)...", android.widget.Toast.LENGTH_SHORT).show()
-                    
-                    // فرمان تست پینگ
-                    onAction(MainAction.TestRealAllServers)
-                    
-                    // زمان انتظار طولانی‌تر شد تا تست‌ها کامل شوند
-                    delay(10000)
-                    
-                    // فرمان مرتب‌سازی
-                    onAction(MainAction.SortByTestResults)
-                    android.widget.Toast.makeText(context, if(isFa) "لیست مرتب شد! روی اولین سرور کلیک کنید." else "Sorted! Please tap the first server.", android.widget.Toast.LENGTH_LONG).show()
-                    isTesting = false
-                }
-            },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, if (isTesting) Color(0xFFA3A3A3) else Color(0xFF474747)) // کادر هنگام تست تغییر رنگ می‌دهد
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1D24)),
+        border = BorderStroke(1.dp, Color(0xFF2A2D35)),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_routing_24dp),
-                contentDescription = null,
-                tint = if (isTesting) Color(0xFF83D6B5) else Color(0xFFA3A3A3),
-                modifier = Modifier.size(32.dp)
-            )
+            // حلقه سبز رنگ برای حجم
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF00382E))
+                    .padding(4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("$remaining\nGB", color = Color(0xFF66E2B3), fontSize = 11.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
             Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = if(isTesting) (if(isFa) "در حال پردازش..." else "Processing...") else (if(isFa) "پیدا کردن سریع‌ترین سرور" else "Find Fastest Server"), 
-                    color = Color.White, 
-                    fontWeight = FontWeight.Bold, 
-                    fontSize = 18.sp
-                )
-                Text(
-                    text = if(isFa) "تست پینگ و مرتب‌سازی هوشمند" else "Test ping & smart sort", 
-                    color = Color(0xFF808080), 
-                    fontSize = 13.sp
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(getStr("دسترسی پرمیوم فعال", "Premium Access Active"), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(getStr("از اینترنت بدون محدودیت لذت ببرید", "Enjoy unlimited everything"), color = Color(0xFF66E2B3), fontSize = 13.sp)
             }
+            Icon(painterResource(R.drawable.ic_arrow_forward_24dp), contentDescription = null, tint = Color(0xFFA3A3A3))
         }
     }
 }
 
-// === ۲. باکس لوکس و مدرن برای نمایش وضعیت و آی‌پی هنگام اتصال ===
-@Composable
-fun ConnectionStatusCard(isRunning: Boolean, displayText: String) {
-    val isFa = Locale.getDefault().language == "fa" || Locale.getDefault().language == "ar"
-    
-    if (isRunning) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF192E26)), // رنگ سبز تیره و خاص
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, Color(0xFF2E634F))
-        ) {
-            Column(modifier = Modifier.padding(20.dp).fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_check_update_24dp), 
-                        contentDescription = null, 
-                        tint = Color(0xFF66E2B3) // سبز نئونی
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = if(isFa) "اتصال ایمن برقرار است" else "Secure Connection Active", 
-                        color = Color(0xFF66E2B3), 
-                        fontWeight = FontWeight.Bold, 
-                        fontSize = 16.sp
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                // نمایش اطلاعات با استایل تمیزتر
-                Text(
-                    text = displayText, 
-                    color = Color(0xFFE0E0E0), 
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp
-                )
-            }
-        }
-    }
-}
-
-// === ۳. بدنه اصلی برنامه ===
+// === بدنه اصلی برنامه ===
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel,
@@ -144,25 +195,25 @@ fun MainScreen(
 ) {
     val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
     val groups = uiState.groups
-    val isLoading by mainViewModel.isLoading.collectAsStateWithLifecycle()
     val isRunning = uiState.isRunning
     val displayText = mainViewModel.formatStatus(uiState.status)
     val selectedGuid = uiState.selectedGuid
-    val doubleColumnDisplay = uiState.doubleColumnDisplay
     val confirmRemove = uiState.confirmRemove
     val shareQRCodeBitmap = uiState.shareQRCodeBitmap
+    val doubleColumnDisplay = uiState.doubleColumnDisplay
 
-    val isDarkTheme = LocalDarkTheme.current
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var showSearch by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    
+    // متغیرهای دیالوگ‌ها
     var showDelAllConfirm by remember { mutableStateOf(false) }
     var showDelDuplicateConfirm by remember { mutableStateOf(false) }
     var showDelInvalidConfirm by remember { mutableStateOf(false) }
     var showRemoveConfirm by remember { mutableStateOf<String?>(null) }
-
     var shareTarget by remember { mutableStateOf<Triple<String, ProfileItem, Boolean>?>(null) }
+
     val removeServer: (String) -> Unit = { guid ->
         if (confirmRemove) showRemoveConfirm = guid else onAction(MainAction.RemoveServer(guid))
     }
@@ -175,34 +226,15 @@ fun MainScreen(
     val lazyListStates = remember { mutableStateMapOf<String, LazyListState>() }
     val lazyGridStates = remember { mutableStateMapOf<String, LazyGridState>() }
 
-    LaunchedEffect(groups) {
-        val validGroupIds = groups.map { it.id }.toSet()
-        lazyListStates.keys.retainAll(validGroupIds)
-        lazyGridStates.keys.retainAll(validGroupIds)
-    }
-
     LaunchedEffect(groups, uiState.selectedGroupId) {
         if (groups.isEmpty()) return@LaunchedEffect
-        val selectedIndex = groups.indexOfFirst { it.id == uiState.selectedGroupId }
-            .takeIf { it >= 0 } ?: 0
+        val selectedIndex = groups.indexOfFirst { it.id == uiState.selectedGroupId }.takeIf { it >= 0 } ?: 0
         if (!pagerState.isScrollInProgress && pagerState.settledPage != selectedIndex) {
             pagerState.scrollToPage(selectedIndex)
         }
     }
 
-    val latestGroups by rememberUpdatedState(groups)
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }
-            .distinctUntilChanged()
-            .collect { page ->
-                val currentGroups = latestGroups
-                if (page in currentGroups.indices) {
-                    onAction(MainAction.SelectGroup(currentGroups[page].id))
-                }
-            }
-    }
-
+    // دیالوگ‌ها (مخفی)
     MainDialogs(
         showDelAllConfirm = showDelAllConfirm,
         onDismissDelAll = { showDelAllConfirm = false },
@@ -220,14 +252,7 @@ fun MainScreen(
 
     if (shareTarget != null) {
         val (guid, profile, more) = shareTarget!!
-        ShareMethodDialog(
-            guid = guid,
-            profile = profile,
-            more = more,
-            onDismiss = { shareTarget = null },
-            onAction = onAction,
-            onRemove = removeServer,
-        )
+        ShareMethodDialog(guid = guid, profile = profile, more = more, onDismiss = { shareTarget = null }, onAction = onAction, onRemove = removeServer)
     }
     if (shareQRCodeBitmap != null) {
         QRCodeDialog(bitmap = shareQRCodeBitmap, onDismiss = { onAction(MainAction.DismissQRCodeDialog) })
@@ -235,128 +260,76 @@ fun MainScreen(
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = {
-            MainDrawerContent(
-                drawerState = drawerState,
-                onNavigate = { route ->
-                    scope.launch { drawerState.close() }
-                    onNavigate(route)
-                }
-            )
-        }
+        drawerContent = { MainDrawerContent(drawerState = drawerState, onNavigate = { route -> scope.launch { drawerState.close() }; onNavigate(route) }) }
     ) {
         Scaffold(
             contentWindowInsets = ScaffoldDefaults.contentWindowInsets,
-            topBar = {
-                MainTopBar(
-                    isLoading = isLoading,
-                    showSearch = showSearch,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { query: String ->
-                        searchQuery = query
-                        onAction(MainAction.Search(query))
-                    },
-                    onSearchClose = {
-                        searchQuery = ""
-                        onAction(MainAction.Search(""))
-                        showSearch = false
-                    },
-                    onSearchToggle = { show: Boolean -> showSearch = show },
-                    onMenuClick = { scope.launch { drawerState.open() } },
-                    onAction = onAction,
-                    onMoreMenuAction = { action ->
-                        when (action) {
-                            MainMoreMenuAction.RestartService -> onAction(MainAction.RestartService)
-                            MainMoreMenuAction.DeleteAll -> showDelAllConfirm = true
-                            MainMoreMenuAction.DeleteDuplicate -> showDelDuplicateConfirm = true
-                            MainMoreMenuAction.DeleteInvalid -> showDelInvalidConfirm = true
-                            MainMoreMenuAction.ExportAll -> onAction(MainAction.ExportAll)
-                            MainMoreMenuAction.LocateSelected -> onAction(MainAction.LocateSelectedServer)
-                            MainMoreMenuAction.SortByTestResults -> onAction(MainAction.SortByTestResults)
-                            MainMoreMenuAction.TestAll -> onAction(MainAction.TestAllServers)
-                            MainMoreMenuAction.TestAllRealPing -> onAction(MainAction.TestRealAllServers)
-                            MainMoreMenuAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
-                        }
-                    }
-                )
-            },
-            bottomBar = {
-                MainBottomBar(
-                    displayText = displayText,
-                    isRunning = isRunning,
-                    isDarkTheme = isDarkTheme,
-                    onAction = onAction
-                )
-            },
+            // نوار بالایی و پایینی پیش‌فرض V2rayNG رو حذف کردم تا هدر خودمون رو بذاریم
+            topBar = {},
+            bottomBar = {}, 
             floatingActionButton = {},
         ) { innerPadding ->
-            val layoutDirection = LocalLayoutDirection.current
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color(0xFF1E1E1E)) 
+                    .background(Color(0xFF12141A)) // رنگ پس‌زمینه دارک شبیه عکس
             ) {
-                // نمایش کارت هوشمند انتخاب سرور
-                AutoConnectFastestCard(mainViewModel = mainViewModel, onAction = onAction)
-                
-                // نمایش باکس زیبای آی‌پی و وضعیت اتصال
-                ConnectionStatusCard(isRunning = isRunning, displayText = displayText)
+                // هدر اختصاصی ما در بالاترین قسمت
+                WindscribeHeader(
+                    isRunning = isRunning,
+                    displayText = displayText,
+                    onMenuClick = { scope.launch { drawerState.open() } },
+                    onConnectClick = { onAction(MainAction.FabClick) }, // این دکمه همون کار دکمه اتصال رو می‌کنه
+                    onSearchClick = { showSearch = !showSearch }
+                )
 
-                if (groups.isNotEmpty()) {
-                    if (groups.size > 1) {
-                        GroupTabBar(
-                            groups = groups,
-                            selectedTabIndex = pagerState.currentPage.coerceIn(0, groups.lastIndex),
-                            mainViewModel = mainViewModel,
-                            onTabClick = { targetIndex ->
-                                scope.launch {
-                                    pagerState.navigateToPageOptimized(
-                                        targetPage = targetIndex,
-                                        animateAdjacentPage = true
-                                    )
-                                }
-                            }
-                        )
-                    }
-
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        beyondViewportPageCount = 1,
-                        key = { page -> groups.getOrNull(page)?.id ?: "group-page-$page" }
-                    ) { page ->
-                        val group = groups.getOrNull(page) ?: return@HorizontalPager
-
-                        GroupPagerPage(
-                            groupId = group.id,
-                            mainViewModel = mainViewModel,
-                            selectedGuid = selectedGuid,
-                            locateTarget = uiState.locateTarget,
-                            doubleColumnDisplay = doubleColumnDisplay,
-                            searchQuery = searchQuery,
-                            lazyListStates = lazyListStates,
-                            lazyGridStates = lazyGridStates,
-                            onSelectServer = { guid -> onAction(MainAction.SelectServer(guid)) },
-                            onEditServer = { guid, profile -> onAction(MainAction.EditServer(guid, profile)) },
-                            onShareServer = { guid, profile ->
-                                shareTarget = Triple(guid, profile, false)
-                            },
-                            onMoreServer = { guid, profile ->
-                                shareTarget = Triple(guid, profile, true)
-                            },
-                            onRemoveServer = removeServer,
-                            contentPadding = PaddingValues(
-                                start = 0.dp,
-                                top = 0.dp,
-                                end = 0.dp,
-                                bottom = 80.dp
-                            )
-                        )
-                    }
+                // نوار جستجو (فقط در صورت کلیک روی آیکون جستجو باز میشه)
+                if (showSearch) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it; onAction(MainAction.Search(it)) },
+                        placeholder = { Text(getStr("جستجو...", "Search..."), color = Color.Gray) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        colors = TextFieldDefaults.colors(focusedContainerColor = Color(0xFF1A1D24), unfocusedContainerColor = Color(0xFF1A1D24), focusedTextColor = Color.White)
+                    )
                 }
+
+                // لیست سرورها
+                if (groups.isNotEmpty()) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier.fillMaxSize(),
+                            userScrollEnabled = true,
+                            beyondViewportPageCount = 1,
+                            key = { page -> groups.getOrNull(page)?.id ?: "group-page-$page" }
+                        ) { page ->
+                            val group = groups.getOrNull(page) ?: return@HorizontalPager
+                            GroupPagerPage(
+                                groupId = group.id,
+                                mainViewModel = mainViewModel,
+                                selectedGuid = selectedGuid,
+                                locateTarget = uiState.locateTarget,
+                                doubleColumnDisplay = doubleColumnDisplay,
+                                searchQuery = searchQuery,
+                                lazyListStates = lazyListStates,
+                                lazyGridStates = lazyGridStates,
+                                onSelectServer = { guid -> onAction(MainAction.SelectServer(guid)) },
+                                onEditServer = { guid, profile -> onAction(MainAction.EditServer(guid, profile)) },
+                                onShareServer = { guid, profile -> shareTarget = Triple(guid, profile, false) },
+                                onMoreServer = { guid, profile -> shareTarget = Triple(guid, profile, true) },
+                                onRemoveServer = removeServer,
+                                contentPadding = PaddingValues(bottom = 20.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+
+                // بنر اطلاعات حساب در پایین‌ترین نقطه
+                WindscribeAccountBanner()
+                Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding()))
             }
         }
     }
