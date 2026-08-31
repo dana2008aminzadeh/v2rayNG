@@ -64,8 +64,7 @@
         <!-- اکتیویتی جدید لاگین که حالا نقطه شروع برنامه است -->
         <activity
             android:name=".ui.LoginActivity"
-            android:exported="true"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
