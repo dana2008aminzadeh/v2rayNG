@@ -8,7 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.v2ray.ang.R
 import com.v2ray.ang.handler.AngConfigManager
-import com.v2ray.ang.util.MmkvManager
+import com.v2ray.ang.handler.MmkvManager // آدرس صحیح جایگزین شد
+import com.v2ray.ang.ui.main.MainActivity // این خط اضافه شد
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
