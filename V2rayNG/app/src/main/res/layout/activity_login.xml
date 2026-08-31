@@ -1,0 +1,41 @@
+<!-- مسیر: V2rayNG/app/src/main/res/layout/activity_login.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="32dp"
+    android:gravity="center"
+    android:background="#FFFFFF"> <!-- پس‌زمینه روشن -->
+
+    <EditText
+        android:id="@+id/etUsername"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="نام کاربری"
+        android:textColor="#251E1B"
+        android:textColorHint="#5F605C"
+        android:background="#F0F0F0"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="رمز عبور"
+        android:inputType="textPassword"
+        android:textColor="#251E1B"
+        android:textColorHint="#5F605C"
+        android:background="#F0F0F0"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="ورود و دریافت سرور"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#EB0A1E" 
+        android:textStyle="bold"/>
+</LinearLayout>
